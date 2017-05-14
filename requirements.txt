@@ -1,0 +1,5 @@
+certifi
+future>=0.15.2
+PySocks
+pytz
+urllib3

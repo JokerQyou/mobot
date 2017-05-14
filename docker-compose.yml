@@ -1,0 +1,10 @@
+version: '2'
+services:
+    mobot:
+        build: .
+        volumes:
+            - .:/mobot
+        depends_on:
+            - redis
+    redis:
+        image: "redis:alpine"

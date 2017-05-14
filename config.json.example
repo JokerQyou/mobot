@@ -1,0 +1,4 @@
+{
+    "token": "telegram_bot_token",
+    "proxy": "http://127.0.0.1:9090 if you don't use proxy, please remove this"
+}
