@@ -60,7 +60,7 @@ class WorkdayEndFilter(BaseFilter):
                     if k in text:
                         return True
         return False
-        
+
     def filter(self, message):
         # First filter by weekday: we don't work on weekends
         date = TZ.normalize(message.date.replace(tzinfo=pytz.utc))
@@ -68,12 +68,12 @@ class WorkdayEndFilter(BaseFilter):
             return False
 
         # Then filter by time: we work in range of [9.am, 18.pm]
-        if date.hour < START or date.hour > END:
+        if date.hour < START or date.hour >= END:
             return False
 
         # Then filter by message text
         text = message.text
-        
+
         if self._bad_keyword_detect(text) or self._keyword_detect(text):
             return True
 
@@ -95,7 +95,8 @@ def workday_end_time(bot, update):
 
     hour = duration.seconds // 3600
     minute = (duration.seconds % 3600) // 60
-    time_remaining = ' {} 小时 {} 分钟'.format(hour, minute)
+    time_remaining = ' {} 小时'.format(hour) if hour else ''
+    time_remaining += ' {} 分钟'.format(minute)
 
     text = random.choice(text_templates).format(time_remaining)
     bot.send_message(chat_id=update.message.chat_id, text=text)
