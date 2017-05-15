@@ -24,9 +24,9 @@ class WorkdayEndFilter(BaseFilter):
         bad_words = (
             '药丸',
             '倒闭',
-            '执笠',
+            '执笠',  # 倒闭
             '散伙',
-            '收档'
+            '收档',  # 关门
         )
         for i in keywords:
             if i in text:
@@ -41,7 +41,7 @@ class WorkdayEndFilter(BaseFilter):
             '想下班',
             '想回家',
             '想返屋企',
-            '好眼瞓',
+            '好眼瞓',  # 很困
             '想睡觉',
             '要补休',
         )
