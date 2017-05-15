@@ -15,6 +15,52 @@ END = 18
 
 class WorkdayEndFilter(BaseFilter):
 
+    def _bad_keyword_detect(self, text):
+        keywords = (
+            '公司',
+            '项目',
+            '工作'
+        )
+        bad_words = (
+            '药丸',
+            '倒闭',
+            '执笠',
+            '散伙',
+            '收档'
+        )
+        for i in keywords:
+            if i in text:
+                for j in bad_words:
+                    if j in text:
+                        return True
+        return False
+
+    def _keyword_detect(self, text):
+        keywords = (
+            '下班了',
+            '想下班',
+            '想回家',
+            '想返屋企',
+            '好眼瞓',
+            '想睡觉',
+            '要补休',
+        )
+        time_query_keywords = (
+            '啥时',
+            '几点',
+            '什么时候',
+            '何時',
+            '几时'
+        )
+        for keyword in keywords:
+            if keyword in text:
+                return True
+            if u'下班' in text:
+                for k in time_query_keywords:
+                    if k in text:
+                        return True
+        return False
+        
     def filter(self, message):
         # First filter by weekday: we don't work on weekends
         date = TZ.normalize(message.date.replace(tzinfo=pytz.utc))
@@ -27,15 +73,9 @@ class WorkdayEndFilter(BaseFilter):
 
         # Then filter by message text
         text = message.text
-        keywords = (u'下班了', u'想下班', u'想回家', )
-        time_query_keywords = (u'啥时', u'几点', u'什么时候', u'何時', )
-        for keyword in keywords:
-            if keyword in text:
-                return True
-            if u'下班' in text:
-                for k in time_query_keywords:
-                    if k in text:
-                        return True
+        
+        if self._bad_keyword_detect(text) or self._keyword_detect(text):
+            return True
 
         return False
 
@@ -61,4 +101,7 @@ def workday_end_time(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=text)
 
 
-workday_end_handler = MessageHandler(Filters.text & WorkdayEndFilter(), workday_end_time)
+workday_end_handler = MessageHandler(
+    Filters.text & WorkdayEndFilter(),
+    workday_end_time
+)
