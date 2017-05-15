@@ -25,13 +25,39 @@ class WorkdayEndFilter(BaseFilter):
 
         # Then filter by message text
         text = unicode(message.text)
-        keywords = (u'下班了', u'想下班', u'想回家', )
-        time_query_keywords = (u'啥时', u'几点', u'什么时候', u'何時', )
+        keywords = (
+            u'下班了',
+            u'想下班',
+            u'想回家',
+            u'饿了',
+            u'想睡觉',
+            u'好困',
+            u'玩游戏'
+        )
+        time_query_keywords = (
+            u'啥时',
+            u'几点',
+            u'什么时候',
+            u'何時',
+            u'还没',
+        )
+        bad_words = (
+            u"吃屎",
+            u"药丸",
+            u"执笠",
+            u"倒闭",
+            u"关门",
+            u"散伙",
+        )
         for keyword in keywords:
             if keyword in text:
                 return True
             if u'下班' in text:
                 for k in time_query_keywords:
+                    if k in text:
+                        return True
+            if u'工作' in text or u"公司" in text:
+                for k in bad_words:
                     if k in text:
                         return True
 
