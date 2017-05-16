@@ -2,7 +2,6 @@
 import json
 import logging
 
-
 from telegram.ext import Updater
 from handlers import HANDLERS
 
