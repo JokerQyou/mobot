@@ -76,7 +76,8 @@ def is_quin_live(live):
             if rest_duration.days == 0:
                 text = '刚刚勃完，让{}歇一歇吧，不要猝死在直播间。'.format(random_quin_nick())
             else:
-                text = '已经摸了 {} 天 {} 小时 {} 分钟了。\n{}'.format(
+                text = '{}已经摸了 {} 天 {} 小时 {} 分钟了。\n{}'.format(
+                    random_quin_nick(),
                     rest_duration.days,
                     rest_duration.seconds // 3600,
                     rest_duration.seconds % 3600 // 60,
