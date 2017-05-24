@@ -14,6 +14,7 @@ import requests
 
 # from telegram.ext import BaseFilter, Filters, MessageHandler
 from telegram.ext import CommandHandler
+from telegram import ChatAction
 
 log = logging.getLogger()
 TZ = pytz.timezone('Asia/Shanghai')
@@ -90,6 +91,9 @@ def is_quin_live(live):
 
 
 def check_quin_live(bot, update):
+    bot.sendChatAction(
+        chat_id=update.message.chat_id, action=ChatAction.TYPING
+    )
     api_url = 'http://open.douyucdn.cn/api/RoomApi/room/3614'
     try:
         data = requests.get(
@@ -106,10 +110,10 @@ def check_quin_live(bot, update):
             timeout=5
         ).json()
     except requests.RequestException as e:
-        return bot.send_message(chat_id=update.message.chat_id, text='出事儿啦！{}'.format(e.message))
+        return update.message.reply_text('出事儿啦！{}'.format(e.message), quote=True)
     else:
         text = is_quin_live(data)
-        bot.send_message(chat_id=update.message.chat_id, text=text)
+        update.message.reply_text(text, quote=True)
 
 
 quin_live_handler = CommandHandler('live', check_quin_live)

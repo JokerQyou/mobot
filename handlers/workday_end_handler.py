@@ -6,6 +6,7 @@ import random
 import pytz
 
 from telegram.ext import BaseFilter, Filters, MessageHandler
+from telegram import ChatAction
 
 log = logging.getLogger()
 TZ = pytz.timezone('Asia/Shanghai')
@@ -83,6 +84,9 @@ class WorkdayEndFilter(BaseFilter):
 
 
 def workday_end_time(bot, update):
+    bot.sendChatAction(
+        chat_id=update.message.chat_id, action=ChatAction.TYPING
+    )
     text_templates = (
         '{}之后就能去做些快乐的事情了',
         '离下班还有{}',
@@ -101,7 +105,7 @@ def workday_end_time(bot, update):
     time_remaining += ' {} 分钟'.format(minute)
 
     text = random.choice(text_templates).format(time_remaining)
-    bot.send_message(chat_id=update.message.chat_id, text=text)
+    update.message.reply_text(text, quote=True)
 
 
 workday_end_handler = MessageHandler(
