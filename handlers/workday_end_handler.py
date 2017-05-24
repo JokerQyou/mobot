@@ -44,13 +44,15 @@ class WorkdayEndFilter(BaseFilter):
             '好眼瞓',  # 很困
             '想睡觉',
             '要补休',
+            '想摸鱼',
         )
         time_query_keywords = (
             '啥时',
             '几点',
             '什么时候',
             '何時',
-            '几时'
+            '几时',
+            '多久',
         )
         for keyword in keywords:
             if keyword in text:
