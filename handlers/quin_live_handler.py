@@ -109,8 +109,8 @@ def check_quin_live(bot, update):
             },
             timeout=5
         ).json()
-    except requests.RequestException as e:
-        return update.message.reply_text('出事儿啦！{}'.format(e.message), quote=True)
+    except Exception as e:
+        return update.message.reply_text('出事儿啦！{}'.format(e), quote=True)
     else:
         text = is_quin_live(data)
         update.message.reply_text(text, quote=True)
