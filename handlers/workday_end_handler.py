@@ -7,6 +7,7 @@ import pytz
 
 from telegram.ext import BaseFilter, Filters, MessageHandler
 from telegram import ChatAction
+from cn_holidays import is_workday
 
 log = logging.getLogger()
 TZ = pytz.timezone('Asia/Shanghai')
@@ -67,7 +68,7 @@ class WorkdayEndFilter(BaseFilter):
     def filter(self, message):
         # First filter by weekday: we don't work on weekends
         date = TZ.normalize(message.date.replace(tzinfo=pytz.utc))
-        if date.weekday() > 4:  # Weekdays are [0, 6]
+        if not is_workday(date):
             return False
 
         # Then filter by time: we work in range of [9.am, 18.pm]
