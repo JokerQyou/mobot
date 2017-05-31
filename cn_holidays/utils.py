@@ -33,9 +33,9 @@ def clean_up_dict(d):
     '''
     r = {}
     for k, v in d.items():
-        if isinstance(k, basestring):
+        if isinstance(k, str):
             key = k.strip()
-        if isinstance(v, basestring):
+        if isinstance(v, str):
             value = v.strip()
         r[key] = value
     return r
@@ -90,18 +90,18 @@ def get_day_type(dt):
 
     year = str(dt.year)
     load_data(year)
-    matched_days = filter(
+    matched_days = list(filter(
         lambda x: all([
             x['year'] == dt.year,
             x['month'] == dt.month,
             x['day'] == dt.day,
         ]),
         CACHE[year].values()
-    )
-    if filter(lambda x: x['isholiday'] is True, matched_days):
+    ))
+    if list(filter(lambda x: x['isholiday'] is True, matched_days)):
         return DAY_TYPES.HOLIDAY
 
-    if filter(lambda x: x['isworkday'] is True, matched_days):
+    if list(filter(lambda x: x['isworkday'] is True, matched_days)):
         return DAY_TYPES.HOLIDAY_TRADEOFF
 
     if dt.weekday() > 4:
