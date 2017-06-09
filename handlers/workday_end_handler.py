@@ -47,6 +47,7 @@ class WorkdayEndFilter(BaseFilter):
             '想睡觉',
             '要补休',
             '想摸鱼',
+            '不想醒目',
         )
         time_query_keywords = (
             '啥时',
@@ -56,11 +57,20 @@ class WorkdayEndFilter(BaseFilter):
             '几时',
             '多久',
         )
+        eye_catching_keywords = (
+            '多久',
+            '还要',
+            '你们最好',
+        )
         for keyword in keywords:
             if keyword in text:
                 return True
             if u'下班' in text:
                 for k in time_query_keywords:
+                    if k in text:
+                        return True
+            if u'醒目' in text:
+                for k in eye_catching_keywords:
                     if k in text:
                         return True
         return False
@@ -94,6 +104,8 @@ def workday_end_time(bot, update):
         '还有{}就下班了',
         '敬业时间还剩{}',
         '再敬业{}就能歇了',
+        '还要醒目{}',
+        '剩余醒目时间: {}',
     )
 
     now = TZ.normalize(update.message.date.replace(tzinfo=pytz.utc))
