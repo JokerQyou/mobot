@@ -1,23 +1,26 @@
 # coding: utf-8
 '''
 Notice:
-All credits to https://github.com/Yven/zaima for live stream detection and random memes.
+Credits to https://github.com/Yven/zaima for live stream detection and random memes.
 
 秦喵喵谁不爱呢
 '''
-from datetime import datetime
 import logging
 import random
+import time
 
 import pytz
 import requests
+import tasktiger
 
 # from telegram.ext import BaseFilter, Filters, MessageHandler
 from telegram.ext import CommandHandler
-from telegram import ChatAction
+from telegram import Bot
+from storage import get_storage
 
 log = logging.getLogger()
 TZ = pytz.timezone('Asia/Shanghai')
+tiger = tasktiger.TaskTiger()
 
 
 def random_quin_meme():
@@ -59,41 +62,23 @@ def is_quin_live(live):
     '''
     Return proper text according to given JSON API response
     '''
-    if live['error']:
-        text = '好神秘啊，怕不是进错房间了？'
-    else:
+    if not live['error']:
         live = live['data']
         quin_live_url = 'http://douyu.com/quin'
         if live['room_status'] == '1':
-            text = (
+            return (
                 '惊了！{}居然播了，不敢信。'
                 '而且有{}个猛男在看直播，整个房间都gay gay的。 {}'
             ).format(random_quin_nick(), live['online'], quin_live_url)
-        elif live['room_status'] == '2':
-            now = TZ.normalize(datetime.utcnow().replace(tzinfo=pytz.utc))
-            last_live = TZ.localize(datetime.strptime(live['start_time'], '%Y-%m-%d %H:%M'))
-            rest_duration = now - last_live
-            # Rested for less than one day
-            if rest_duration.days == 0:
-                text = '刚刚勃完，让{}歇一歇吧，不要猝死在直播间。'.format(random_quin_nick())
-            else:
-                text = '{}已经摸了 {} 天 {} 小时 {} 分钟了。\n{}'.format(
-                    random_quin_nick(),
-                    rest_duration.days,
-                    rest_duration.seconds // 3600,
-                    rest_duration.seconds % 3600 // 60,
-                    random_quin_meme()
-                )
-        else:
-            text = '斗鱼怎么了，简直说不出话。'
-
-    return text
 
 
-def check_quin_live(bot, update):
-    bot.sendChatAction(
-        chat_id=update.message.chat_id, action=ChatAction.TYPING
-    )
+@tiger.task(schedule=tasktiger.periodic(minutes=10), unique=True)
+def check_quin_live(token):
+    with get_storage('quin_livestream') as store:
+        # 开播后每 1 小时检查一次
+        if time.time() - store.get('streaming', 0) < 60 * 60:
+            return
+
     api_url = 'http://open.douyucdn.cn/api/RoomApi/room/3614'
     try:
         data = requests.get(
@@ -110,10 +95,43 @@ def check_quin_live(bot, update):
             timeout=5
         ).json()
     except Exception as e:
-        return update.message.reply_text('出事儿啦！{}'.format(e), quote=True)
+        print e
     else:
         text = is_quin_live(data)
-        update.message.reply_text(text, quote=True)
+        if text:
+            bot = Bot(token)
+            with get_storage('quin_livestream') as store:
+                store['streaming'] = time.time()
+                for chat in store['subscriptions']:
+                    bot.send_message(chat, text)
 
 
-quin_live_handler = CommandHandler('live', check_quin_live)
+def sub_quin_live(bot, update):
+    new_subscription = False
+    with get_storage('quin_livestream') as store:
+        if update.message.chat_id not in store['subscriptions']:
+            store['subscriptions'] = store['subscriptions'] + [update.message.chat_id]
+            new_subscription = True
+
+    if new_subscription:
+        update.message.reply_text(
+            '订阅成功。每 10 分钟检查一次，如果 {} 开播会告诉你的。'.format(
+                random_quin_nick()
+            )
+        )
+        check_quin_live(bot.token)
+
+
+def unsub_quin_live(bot, update):
+    with get_storage('quin_livestream') as store:
+        if update.message.chat_id in store['subscriptions']:
+            subs = store['subscriptions']
+            subs.remove(update.message.chat_id)
+            store['subscriptions'] = subs
+            update.message.reply_text('哦')
+        else:
+            update.message.reply_text('都还没订阅，智障啊')
+
+
+quin_live_sub_handler = CommandHandler('sublive', sub_quin_live)
+quin_live_unsub_handler = CommandHandler('unsublive', unsub_quin_live)

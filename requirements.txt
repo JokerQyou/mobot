@@ -4,3 +4,5 @@ PySocks
 pytz
 urllib3
 requests
+redis_wrap
+tasktiger

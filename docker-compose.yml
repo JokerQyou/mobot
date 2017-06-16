@@ -5,6 +5,6 @@ services:
         volumes:
             - .:/mobot
         depends_on:
-            - redis
-    redis:
+            - redis_db
+    redis_db:
         image: "redis:alpine"
