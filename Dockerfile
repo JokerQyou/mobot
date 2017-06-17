@@ -3,4 +3,4 @@ ADD . /mobot
 WORKDIR /mobot
 RUN pip install -r requirements.txt
 ENV REDIS_URL redis://redis_db:6379
-CMD ["python", "bot.py"]
+CMD ["python", "-m", "mobot.bot"]

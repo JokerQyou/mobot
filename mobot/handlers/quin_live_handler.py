@@ -11,16 +11,17 @@ import time
 
 import pytz
 import requests
-import tasktiger
 
 # from telegram.ext import BaseFilter, Filters, MessageHandler
 from telegram.ext import CommandHandler
 from telegram import Bot
-from storage import get_storage
+from ..storage import get_set, get_hash
+from ..taskqueue import tiger, periodic
 
 log = logging.getLogger()
 TZ = pytz.timezone('Asia/Shanghai')
-tiger = tasktiger.TaskTiger()
+SUB_LIST = 'quin_livestream:subscription'
+STORE_HASH = 'quin_livestream:store'
 
 
 def random_quin_meme():
@@ -72,15 +73,18 @@ def is_quin_live(live):
             ).format(random_quin_nick(), live['online'], quin_live_url)
 
 
-@tiger.task(schedule=tasktiger.periodic(minutes=10), unique=True)
+@tiger.task(schedule=periodic(minutes=10), unique=True)
 def check_quin_live(token):
-    with get_storage('quin_livestream') as store:
-        # 开播后每 1 小时检查一次
-        if time.time() - store.get('streaming', 0) < 60 * 60:
-            return
+    store = get_hash(STORE_HASH)
+
+    # 开播后每 1 小时检查一次
+    if time.time() - float(store.get('streaming', 0)) < 60 * 60:
+        print('just checked')
+        return
 
     api_url = 'http://open.douyucdn.cn/api/RoomApi/room/3614'
     try:
+        print('checking quin livestram')
         data = requests.get(
             api_url,
             headers={
@@ -95,42 +99,37 @@ def check_quin_live(token):
             timeout=5
         ).json()
     except Exception as e:
-        print e
+        print(e)
     else:
         text = is_quin_live(data)
         if text:
             bot = Bot(token)
-            with get_storage('quin_livestream') as store:
-                store['streaming'] = time.time()
-                for chat in store['subscriptions']:
-                    bot.send_message(chat, text)
+            store['streaming'] = time.time()
+            for chat in get_set(SUB_LIST):
+                bot.send_message(chat, text)
 
 
 def sub_quin_live(bot, update):
-    new_subscription = False
-    with get_storage('quin_livestream') as store:
-        if update.message.chat_id not in store['subscriptions']:
-            store['subscriptions'] = store['subscriptions'] + [update.message.chat_id]
-            new_subscription = True
-
-    if new_subscription:
+    subs = get_set(SUB_LIST)
+    if update.message.chat_id in subs:
+        update.message.reply_text('活尸化严重啊，订阅过了都不记得的吗')
+    else:
+        subs.add(update.message.chat_id)
         update.message.reply_text(
-            '订阅成功。每 10 分钟检查一次，如果 {} 开播会告诉你的。'.format(
+            '订阅好了。每 10 分钟检查一次，如果 {} 开播会告诉你的。'.format(
                 random_quin_nick()
             )
         )
-        check_quin_live(bot.token)
+        check_quin_live.delay(bot.token)
 
 
 def unsub_quin_live(bot, update):
-    with get_storage('quin_livestream') as store:
-        if update.message.chat_id in store['subscriptions']:
-            subs = store['subscriptions']
-            subs.remove(update.message.chat_id)
-            store['subscriptions'] = subs
-            update.message.reply_text('哦')
-        else:
-            update.message.reply_text('都还没订阅，智障啊')
+    subs = get_set(SUB_LIST)
+    if update.message.chat_id in subs:
+        subs.remove(update.message.chat_id)
+        update.message.reply_text('哦')
+    else:
+        update.message.reply_text('都还没订阅，智障啊')
 
 
 quin_live_sub_handler = CommandHandler('sublive', sub_quin_live)

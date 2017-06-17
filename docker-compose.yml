@@ -8,3 +8,6 @@ services:
             - redis_db
     redis_db:
         image: "redis:alpine"
+        command: redis-server --appendonly yes
+        volumes:
+            - ./data:/data

@@ -7,7 +7,7 @@ import pytz
 
 from telegram.ext import BaseFilter, Filters, MessageHandler
 from telegram import ChatAction
-from cn_holidays import is_workday
+from ..cn_holidays import is_workday
 
 log = logging.getLogger()
 TZ = pytz.timezone('Asia/Shanghai')
