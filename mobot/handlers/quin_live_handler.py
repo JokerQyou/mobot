@@ -20,7 +20,7 @@ from telegram import Bot
 from ..storage import get_set, get_hash
 from .. import CONFIG
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 TZ = pytz.timezone('Asia/Shanghai')
 SUB_LIST = 'quin_livestream:subscription'
 STORE_HASH = 'quin_livestream:store'
@@ -44,7 +44,6 @@ def is_quin_streaming():
     '''
     api_url = 'http://open.douyucdn.cn/api/RoomApi/room/3614'
     try:
-        print('checking quin livestram')
         data = requests.get(
             api_url,
             headers={
@@ -59,6 +58,7 @@ def is_quin_streaming():
             timeout=5
         ).json()
     except:
+        log.exception(u'Error checking livestream status')
         audience_count = 0
         is_streaming = False
     else:
@@ -106,20 +106,24 @@ def check_quin_livestream_periodic():
 
     if store.get('is_streaming', 'false') == 'true':
         if time.time() - float(store.get('last_check', 0)) < 60 * 60:
+            log.debug(u'In streaming, last checked within an hour.')
             return
         else:
+            log.debug(u'In streaming, update livestream status now.')
             is_streaming, _ = is_quin_streaming()
             store.update({
                 'last_check': time.time(),
                 'is_streaming': ('true' if is_streaming else 'false'),
             })
     else:
+        log.debug(u'Not streaming, update livestream status now.')
         is_streaming, audience_count = is_quin_streaming()
         store.update({
             'last_check': time.time(),
             'is_streaming': ('true' if is_streaming else 'false'),
         })
         if is_streaming:
+            log.info(u'Livestream started, will push notifications')
             bot = Bot(CONFIG['token'])
             for subscriber in get_set(SUB_LIST):
                 try:
