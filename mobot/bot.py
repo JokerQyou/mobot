@@ -1,10 +1,10 @@
 # coding: utf-8
-import json
 import logging
 import multiprocessing
 # from multiprocessing.pool import Pool
 
 from telegram.ext import Updater
+from .taskqueue import tiger
 from .handlers import HANDLERS
 from . import CONFIG
 
@@ -20,8 +20,8 @@ def start_taskqueue_workers():
     '''
     # 先添加任务，因为这时候 worker 没有在运行，所以 unique 任务不会出现重复
     from .handlers import PERIODIC_TASKS
-    for task in PERIODIC_TASKS:
-        task.delay()
+    for func, period_ in PERIODIC_TASKS:
+        tiger.task(schedule=period_, unique=True)(func).delay()
 
     # 创建并运行 worker
     from .taskqueue import tiger

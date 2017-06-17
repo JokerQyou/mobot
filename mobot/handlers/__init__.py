@@ -5,8 +5,7 @@ from .quin_live_handler import (
     quin_live_sub_handler, quin_live_unsub_handler,
     check_quin_livestream_periodic,
 )
-from ..taskqueue import tiger
-from tasktiger import Task
+from ..taskqueue import periodic
 
 HANDLERS = (
     workday_end_handler,
@@ -15,6 +14,6 @@ HANDLERS = (
     quin_live_unsub_handler,
 )
 PERIODIC_TASKS = [
-    Task(tiger, check_quin_livestream_periodic, unique=True),
+    (check_quin_livestream_periodic, periodic(minutes=10)),
 ]
 __all__ = ['HANDLERS', 'PERIODIC_TASKS', ]
