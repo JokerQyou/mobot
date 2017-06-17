@@ -1,3 +1,4 @@
 config.json
 *.py[cod]
 .DS_Store
+data
