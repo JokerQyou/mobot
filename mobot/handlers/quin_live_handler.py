@@ -128,6 +128,7 @@ def check_quin_livestream_periodic():
             for subscriber in get_set(SUB_LIST):
                 try:
                     bot.send_message(
+                        subscriber,
                         (
                             '惊了！{}居然播了，不敢信。'
                             '而且有{}个猛男在看直播，整个房间都gay gay的。 {}'
@@ -136,7 +137,7 @@ def check_quin_livestream_periodic():
                         )
                     )
                 except:
-                    pass
+                    log.exception(u'Failed to push')
 
         else:
             pass
