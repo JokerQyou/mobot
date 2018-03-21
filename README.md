@@ -11,4 +11,4 @@
 # Notice
 
 * We use Python 3 latest version (docker image `python:3-alpine`).
-* Redis is currently not used, but is prepared for a task queue system.
+* Redis is used for `tasktiger` task queue.
