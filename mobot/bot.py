@@ -17,11 +17,14 @@ def start_taskqueue_workers():
     '''
     Start task queue worker(s), currently using a single process.
     '''
-    # 先添加任务，因为这时候 worker 没有在运行，所以 unique 任务不会出现重复
     from .handlers import PERIODIC_TASKS
-    from .taskqueue import tiger
+    from .taskqueue import tiger, clear_queue
+    # 删除之前的所有任务
+    clear_queue()
+    # 添加任务
     for func, period_ in PERIODIC_TASKS:
-        tiger.task(schedule=period_, unique=True)(func).delay()
+        tiger.task(schedule=period_, unique=True)(func)()
+        logging.info('Task %s scheduled at %s', func, period_)
 
     # 创建并运行 worker
     p = multiprocessing.Process(target=tiger.run_worker)
