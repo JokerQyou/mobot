@@ -137,7 +137,10 @@ def check_quin_livestream_periodic():
                         )
                     )
                 except:
-                    log.exception(u'Failed to push')
+                    log.exception(
+                        u'Failed to push livestream notification to %s',
+                        subscriber
+                    )
 
         else:
             pass
@@ -152,7 +155,9 @@ def sub_quin_live(bot, update):
     '''
     subs = get_set(SUB_LIST)
     if update.message.chat_id in subs:
-        update.message.reply_text('活尸化严重啊，订阅过了都不记得的吗')
+        update.message.reply_text(
+            '活尸化严重啊，订阅过了都不记得的吗', quote=True
+        )
     else:
         subs.add(update.message.chat_id)
         update.message.reply_text(
@@ -173,9 +178,9 @@ def unsub_quin_live(bot, update):
     subs = get_set(SUB_LIST)
     if update.message.chat_id in subs:
         subs.remove(update.message.chat_id)
-        update.message.reply_text('哦')
+        update.message.reply_text('哦', quote=True)
     else:
-        update.message.reply_text('都还没订阅，智障啊')
+        update.message.reply_text('都还没订阅，智障啊', quote=True)
 
 
 quin_live_sub_handler = CommandHandler('sublive', sub_quin_live)
