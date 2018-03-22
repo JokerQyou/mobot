@@ -118,7 +118,7 @@ def workday_end_time(bot, update):
 
     hour = duration.seconds // 3600
     minute = (duration.seconds % 3600) // 60
-    second = duration % 60
+    second = duration.seconds % 60
     time_remaining = ' {} 小时'.format(hour) if hour else ''
     time_remaining += ' {} 分钟'.format(minute) if minute else ''
     time_remaining += ' {} 秒'.format(second) if second else ''
